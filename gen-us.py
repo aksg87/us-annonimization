@@ -2,31 +2,68 @@ from PIL import Image
 from PIL import ImageDraw
 from PIL import ImageFont
 
-FONT_PATH = "/home/akshay/Dev/deep-anpr/fonts/UKNumberPlate.ttf"
+import textwrap
+import random
 
+#load long list of words from file
+def load_words():
+    with open('words_alpha.txt') as word_file:
+        valid_words = list(word_file.read().split())
 
-source_img = Image.open("input.jpg").convert("RGBA")
+    return valid_words
 
+#generate random sentence like characters
+def trim(words, t):
+	text_rand = random.randint(1, len(words))
 
-font = ImageFont.truetype("arial")
+	text =  words.pop(text_rand)
 
-text = "very loooooooooooooooooong text"
+	while (len(text) < 15):
+		text_rand = random.randint(1, len(words))
+		text = text + " " + words.pop(text_rand)
+	
+	text = text[:t] if len(text) > t else text
+	return text
 
-# get text size
+words = load_words()
+
+text =  trim(words, 50)
+
+font = ImageFont.truetype("arial", 40)
+
+# get text size  
 text_size = font.getsize(text)
 
-# set button size + 10px margins
-button_size = (text_size[0]+20, text_size[1]+20)
+#currently fixed image
+source_img = Image.open("input.jpg").convert("RGBA")
 
-# create image with correct size and black background
-button_img = Image.new('RGBA', button_size, "black")
+x_start = random.randint(1,source_img.size[0])
+y_start = random.randint(1,source_img.size[1])
+
+
+#REMOVING BUTTON IDEA
+# set button size + 10px margins
+# button_size = (text_size[0]+20, text_size[1]+20)
+
+# # create image with correct size and black background
+# button_img = Image.new('RGBA', button_size, (0,0,0,0))
 
 # put text on button with 10px margins
-button_draw = ImageDraw.Draw(button_img)
-button_draw.text((10, 10), text, font=font)
+# button_draw = ImageDraw.Draw(button_img)
+# button_draw.text((10, 10), text, font=font)
 
-# put button on source image in position (0, 0)
-source_img.paste(button_img, (0, 0))
+#currently fixed image
+source_img = Image.open("input.jpg").convert("RGBA")
+source_draw = ImageDraw.Draw(source_img)
+
+#REMOVING BUTTON IDEA
+# put button on source image in position (x_start, y_start)
+#source_img.paste(button_img, (x_start, y_start))
+
+source_draw.text((x_start, y_start), text, font=font)
+
+print(text_size)
+
 
 # save in new file
 source_img = source_img.convert("RGB")

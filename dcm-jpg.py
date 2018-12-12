@@ -5,14 +5,6 @@ from PIL import Image
 from time import sleep
 import os
 
-#Assuming being run from /home/akshay/Dev/us-anonymize
-rootDir = './thyroid-data/data/'
-for dirName, subdirList, fileList in os.walk(rootDir):
-    print('Found directory: %s' % dirName)
-    for fname in fileList:
-        print (dirName+fname)
-        processDCM(dirName+fname)
-
 def processDCM(imagePath):
 
 	print("processing DCM " + imagePath)
@@ -43,3 +35,12 @@ def processDCM(imagePath):
 		    w.write(png_file, image_2d_scaled)
 		 
 		print("written")
+
+
+#Assuming being run from /home/akshay/Dev/us-anonymize
+rootDir = './thyroid-data/data/'
+for dirName, subdirList, fileList in os.walk(rootDir):
+    print('Found directory: %s' % dirName)
+    for fname in fileList:
+        print (dirName+fname)
+        processDCM(dirName+fname)
