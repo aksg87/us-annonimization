@@ -3,34 +3,43 @@ import png
 import pydicom
 from PIL import Image
 from time import sleep
+import os
 
-ds = pydicom.dcmread("/home/akshay/Downloads/thyroid/data/D13.dcm")
+#Assuming being run from /home/akshay/Dev/us-anonymize
+rootDir = './thyroid-data/data/'
+for dirName, subdirList, fileList in os.walk(rootDir):
+    print('Found directory: %s' % dirName)
+    for fname in fileList:
+        print (dirName+fname)
+        processDCM(dirName+fname)
 
-shape = ds.pixel_array.shape
+def processDCM(imagePath):
 
-# Convert to float to avoid overflow or underflow losses.
-image_3d = ds.pixel_array.astype(float)
+	print("processing DCM " + imagePath)
 
-# Rescaling grey scale between 0-255
-image_3d_scaled = (np.maximum(image_3d,0) / image_3d.max()) * 255.0
+	ds = pydicom.dcmread(imagePath)
 
-# Convert to uint
-image_3d_scaled = np.uint8(image_3d_scaled)
+	shape = ds.pixel_array.shape
 
-interval = 10
+	# Convert to float to avoid overflow or underflow losses.
+	image_3d = ds.pixel_array.astype(float)
 
-for x in range(1,shape[0], interval):
+	# Rescaling grey scale between 0-255
+	image_3d_scaled = (np.maximum(image_3d,0) / image_3d.max()) * 255.0
 
-	print(x)
-	# Write the PNG file
-	image_2d_scaled = image_3d_scaled[x,:,:]
-	
-	#im = Image.fromarray(image_2d_scaled)
-	#im.save("/home/akshay/Dev/us-anonymize/outputs/image" + str(x) + ".jpeg" )
-	with open("/home/akshay/Dev/us-anonymize/outputs/image" + str(x)+".png", 'wb') as png_file:
-	    w = png.Writer(shape[2], shape[1], greyscale=True)
-	    w.write(png_file, image_2d_scaled)
-	    sleep(0.05)
-	print("written")
+	# Convert to uint
+	image_3d_scaled = np.uint8(image_3d_scaled)
 
+	interval = 10 
 
+	for x in range(1, shape[0], interval):
+
+		print(os.path.basename(imagePath) + str(x))
+		# Write the PNG file
+		image_2d_scaled = image_3d_scaled[x,:,:]
+		
+		with open("./outputs/" + os.path.basename(imagePath) + str(x)+".png", 'wb') as png_file:
+		    w = png.Writer(shape[2], shape[1], greyscale=True)
+		    w.write(png_file, image_2d_scaled)
+		 
+		print("written")
