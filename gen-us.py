@@ -4,6 +4,7 @@ from PIL import ImageFont
 
 import textwrap
 import random
+import os
 
 #load long list of words from file
 def load_words():
@@ -13,62 +14,85 @@ def load_words():
     return valid_words
 
 #generate random sentence like characters
-def trim(words, t):
+def trim(trim_lenth, min_lenth):
+	words = load_words()
+
 	text_rand = random.randint(1, len(words))
 
 	text =  words.pop(text_rand)
 
-	while (len(text) < 15):
+	while (len(text) < min_lenth):
 		text_rand = random.randint(1, len(words))
 		text = text + " " + words.pop(text_rand)
 	
-	text = text[:t] if len(text) > t else text
+	text = text[:trim_lenth] if len(text) > trim_lenth else text
 	return text
 
-words = load_words()
+def drawCoordinates(x_s, y_s, imageDraw):
+	font = ImageFont.truetype("arial", 10)
+	coordAsStr = str(x_s) +" "+ str(y_s)
 
-text =  trim(words, 50)
+	imageDraw.text((x_s, y_s), coordAsStr, font=font)
 
-font = ImageFont.truetype("arial", 40)
+def insertText_Image(text, font_size, imagePath, testCoordinates, coverText):
 
-# get text size  
-text_size = font.getsize(text)
+	font = ImageFont.truetype("arial", font_size)
 
-#currently fixed image
-source_img = Image.open("input.jpg").convert("RGBA")
+	source_img = Image.open(imagePath).convert("RGBA")
+	source_draw = ImageDraw.Draw(source_img)
 
-x_start = random.randint(1,source_img.size[0])
-y_start = random.randint(1,source_img.size[1])
+	x_start = random.randint(0,round(source_img.size[0]))
+	y_start = random.randint(0,round(source_img.size[1]))
+
+	start_dim = (x_start,y_start)
+	text_dim = font.getsize(text)
+	rectCorner = tuple([sum(x) for x in zip(text_dim,start_dim)])
+
+	c1 = random.randint(1,255)
+	c2 = random.randint(1,255)
+	c3 = random.randint(1,255)
+
+	source_draw.text((x_start, y_start), text,fill=(c1,c2,c3,255), font=font)
+
+	if testCoordinates:
+		drawCoordinates(x_start, y_start, source_draw)
+
+	if (coverText):
+		source_draw.rectangle(start_dim+rectCorner, fill=128)
+
+	# save in new file
+	source_img = source_img.convert("RGB")
+	fileName = "./generated-data/output" +os.path.basename(imagePath)
+	source_img.save(fileName, "PNG")
+	
+	print(fileName + '\t' + str(start_dim + rectCorner))
+	return source_img
+
+def generate_image():
+
+	folderPath = "/home/akshay/Dev/us-anonymize/outputs/"
+	imageName = random.choice(os.listdir(folderPath)) 
+
+	textSize = random.randint(10,50)
+	trim_min = random.randint(3,30)
+	trim_max = random.randint(trim_min,60)
+
+	text =  trim(trim_max, trim_min)
+
+	source_img = insertText_Image(text, textSize, folderPath+imageName, False, False) 
 
 
-#REMOVING BUTTON IDEA
-# set button size + 10px margins
-# button_size = (text_size[0]+20, text_size[1]+20)
+def obscure_image(imagePath, x_s, y_s, x_end, y_end):
 
-# # create image with correct size and black background
-# button_img = Image.new('RGBA', button_size, (0,0,0,0))
+	source_img = Image.open(imagePath).convert("RGBA")
+	source_draw = ImageDraw.Draw(source_img)
 
-# put text on button with 10px margins
-# button_draw = ImageDraw.Draw(button_img)
-# button_draw.text((10, 10), text, font=font)
+	start_dim = (x_s,y_s)
+	rectCorner = (x_end,y_end)
 
-#currently fixed image
-source_img = Image.open("input.jpg").convert("RGBA")
-source_draw = ImageDraw.Draw(source_img)
+	source_draw.rectangle(start_dim+rectCorner, fill=128)
 
-#REMOVING BUTTON IDEA
-# put button on source image in position (x_start, y_start)
-#source_img.paste(button_img, (x_start, y_start))
-
-source_draw.text((x_start, y_start), text, font=font)
-
-print(text_size)
-
-
-# save in new file
-source_img = source_img.convert("RGB")
-source_img.save("output.jpg", "JPEG")
-
-
-
-#https://stackoverflow.com/questions/41405632/draw-a-rectangle-and-a-text-in-it-using-pil
+	# save in new file
+	source_img = source_img.convert("RGB")
+	fileName = "./generated-data/obscured_output" +os.path.basename(imagePath)
+	source_img.save(fileName, "PNG")
