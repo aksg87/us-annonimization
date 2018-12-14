@@ -87,31 +87,33 @@ from PIL import ImageDraw
 from PIL import ImageFont
 import h5py
 
-model = Sequential()
-model.add(Conv2D(32, kernel_size = (3, 3), activation='relu', input_shape=(IMG_SIZE, IMG_SIZE, 1)))
-model.add(MaxPooling2D(pool_size=(2,2)))
-model.add(BatchNormalization())
-model.add(Conv2D(64, kernel_size=(3,3), activation='relu'))
-model.add(MaxPooling2D(pool_size=(2,2)))
-model.add(BatchNormalization())
-model.add(Conv2D(96, kernel_size=(3,3), activation='relu'))
-model.add(MaxPooling2D(pool_size=(2,2)))
-model.add(BatchNormalization())
-model.add(Conv2D(96, kernel_size=(3,3), activation='relu'))
-model.add(MaxPooling2D(pool_size=(2,2)))
-model.add(BatchNormalization())
-model.add(Conv2D(64, kernel_size=(3,3), activation='relu'))
-model.add(MaxPooling2D(pool_size=(2,2)))
-model.add(BatchNormalization())
-model.add(Dropout(0.2))
-model.add(Flatten())
-model.add(Dense(256, activation='relu'))
-model.add(Dropout(0.2))
-model.add(Dense(128, activation='relu'))
-model.add(Dropout(0.3))
-model.add(Dense(128, activation='relu'))
-model.add(Dropout(0.3))
-model.add(Dense(4, activation = 'linear'))
+def create_model():
+	model = Sequential()
+	model.add(Conv2D(32, kernel_size = (3, 3), activation='relu', input_shape=(IMG_SIZE, IMG_SIZE, 1)))
+	model.add(MaxPooling2D(pool_size=(2,2)))
+	model.add(BatchNormalization())
+	model.add(Conv2D(64, kernel_size=(3,3), activation='relu'))
+	model.add(MaxPooling2D(pool_size=(2,2)))
+	model.add(BatchNormalization())
+	model.add(Conv2D(96, kernel_size=(3,3), activation='relu'))
+	model.add(MaxPooling2D(pool_size=(2,2)))
+	model.add(BatchNormalization())
+	model.add(Conv2D(96, kernel_size=(3,3), activation='relu'))
+	model.add(MaxPooling2D(pool_size=(2,2)))
+	model.add(BatchNormalization())
+	model.add(Conv2D(64, kernel_size=(3,3), activation='relu'))
+	model.add(MaxPooling2D(pool_size=(2,2)))
+	model.add(BatchNormalization())
+	model.add(Dropout(0.2))
+	model.add(Flatten())
+	model.add(Dense(256, activation='relu'))
+	model.add(Dropout(0.2))
+	model.add(Dense(128, activation='relu'))
+	model.add(Dropout(0.3))
+	model.add(Dense(128, activation='relu'))
+	model.add(Dropout(0.3))
+	model.add(Dense(4, activation = 'linear'))
+	return model
 
 
 filepath="weights.best.h5"
@@ -119,9 +121,7 @@ checkpoint = ModelCheckpoint(filepath, monitor='val_acc', verbose=1, save_best_o
 callbacks_list = [checkpoint]
 
 # Fit the model
-
 model.compile(loss='mean_squared_error', optimizer='adam', metrics = ['accuracy'])
-
 history = model.fit(trainImages, trainLabels, validation_split=0.33, batch_size = 64, epochs = 100, callbacks=callbacks_list, verbose = 1)
 
 
@@ -131,6 +131,8 @@ def model_infer(model, imagePath):
 
 	img = Image.open(imagePath)
 	img = img.convert('L')
+
+	img.show()
 	img = img.resize((IMG_SIZE, IMG_SIZE), Image.ANTIALIAS)
 
 	np_img = np.array(img)
@@ -138,7 +140,7 @@ def model_infer(model, imagePath):
 	print("INPUT SHAPE and DISPLAY")
 	print(np_img.shape)
 	plt.imshow(np_img, cmap = 'gist_gray')
-	plt.show()
+	#plt.show()
 
 	np_img = np_img.reshape(-1,IMG_SIZE, IMG_SIZE, 1)
 
@@ -152,7 +154,7 @@ def obscure_image(np_img, coords):
 
 	np_img = np_img.reshape(-IMG_SIZE,IMG_SIZE)
 	plt.imshow(np_img, cmap = 'gist_gray')
-	plt.show()
+	#plt.show()
 	source_img = Image.fromarray(np_img)
 	source_img.show()
 	source_draw = ImageDraw.Draw(source_img)
